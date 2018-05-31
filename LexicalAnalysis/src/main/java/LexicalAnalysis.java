@@ -34,6 +34,41 @@ public class LexicalAnalysis {
     // 界符
     public static char boundary[] = { ',', ';', '[', ']', '(', ')', '.', '{', '}'};
 
+    // 字符串DFA,a代表任意字符，b代表除\和'之外的字符
+    public static String stringDFA[] = {
+            "#\\b#",
+            "##a#",
+            "#\\b\"",
+            "####",
+    };
+
+    // 字符DFA,a代表任意字符，b代表除\和'之外的字符
+    public static String charDFA[] = {
+            "#\\b#",
+            "##a#",
+            "###\'",
+            "####"
+    };
+
+    // 实数DFA
+    public static String digitDFA[] = {
+            "#d#####",
+            "#d.#e##",
+            "###d###",
+            "###de##",
+            "#####-d",
+            "######d",
+            "######d"
+    };
+
+    // 多行注释DFA
+    public static String noteDFA[] = {
+            "#####",
+            "##*##",
+            "##c*#",
+            "##c*/",
+            "#####"};
+
     // 存储Token子串的类别以及对应的种别码信息
     public TokenInfo tokenKeyword;           // Token为关键字
     public TokenInfo tokenOperator;          // Token为运算符
@@ -173,6 +208,12 @@ public class LexicalAnalysis {
     }
 
 
+    public static Boolean isEsSt(char ch) {
+        return ch == 'a' || ch == 'b' || ch == 'f' || ch == 'n' || ch == 'r' || ch == 't'
+                || ch == 'v' || ch == '0' || ch == '\\' || ch == '\'' || ch == '\"';
+    }
+
+
 
 
 
@@ -207,7 +248,9 @@ public class LexicalAnalysis {
                     char ch = charArray[j];
                     String token = "";  // 用于记录切割出来的Token
 
-                    if (isAlpha(ch)) {
+                    // 1.关键字、标识符的切割识别
+                    if (isAlpha(ch))
+                    {
                         do {
                             token += ch;
                             j++;
@@ -216,33 +259,41 @@ public class LexicalAnalysis {
 
                             ch = charArray[j];
                         } while (ch != '\0' && (isAlpha(ch) || isDigit(ch)));
-                    }
-                    // 由于指针加1，需要指针回退
-                    j--;
 
-                    // 切割出来的是关键字
-                    if (isKeyword(token)) {
-                        tableModelToken.addRow(new Object[]{token,tokenKeyword.category,
-                                tokenKeyword.categoryCode, i + 1});
-                        jTableTokenInfo.invalidate();
-                    }
+                        // 由于指针加1，需要指针回退
+                        j--;
 
-                    // 切割出来的token是标识符
-                    if (!isKeyword(token)) {
-                        tableModelToken.addRow(new Object[]{token,tokenIdentifier.category,
-                                tokenIdentifier.categoryCode,i + 1});
-                        jTableTokenInfo.invalidate();
-
-                        // 如果符号表为空或者符号表不包含当前的token则需要加入符号表中
-                        if (symbol.isEmpty() ||
-                                (!symbol.isEmpty() && !symbol.containsKey(token))) {
-                            tableModelSymbol.addRow(new Object[]{token,symbol_pos});
-                            symbol_pos ++ ;
-                            jTableSymbolInfo.invalidate();
+                        // 切割出来的是关键字
+                        if (isKeyword(token))
+                        {
+                            tableModelToken.addRow(new Object[]{token,tokenKeyword.category,
+                                    tokenKeyword.categoryCode, i + 1});
+                            jTableTokenInfo.invalidate();
                         }
 
+                        // 切割出来的token是标识符
+                        if (!isKeyword(token))
+                        {
+                            tableModelToken.addRow(new Object[]{token,tokenIdentifier.category,
+                                    tokenIdentifier.categoryCode,i + 1});
+                            jTableTokenInfo.invalidate();
+
+                            // 如果符号表为空或者符号表不包含当前的token则需要加入符号表中
+                            if (symbol.isEmpty() ||
+                                    (!symbol.isEmpty() && !symbol.containsKey(token))) {
+                                tableModelSymbol.addRow(new Object[]{token,symbol_pos});
+                                symbol_pos ++ ;
+                                jTableSymbolInfo.invalidate();
+                            }
+                        }
+                        token = ""; // 当前的token切割识别完毕之后需要重置
                     }
-                    token = "";
+
+                    // 2.数字常量的切割识别
+                    if (isDigit(ch))
+                    {
+
+                    }
 
                 }
 
