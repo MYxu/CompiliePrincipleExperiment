@@ -307,6 +307,10 @@ public class LexicalAnalysis {
         // 状态图状态标志
         int status;
 
+        // 词法错误标志
+        String haveMistake = "no";
+
+
         // 依次对每行代码进行单词切割、词法分析
         for (codeCurrLineNum = 0; codeCurrLineNum < codeLines.length; codeCurrLineNum++) {
             // 取出一行代码字符串
@@ -371,7 +375,6 @@ public class LexicalAnalysis {
                         int k;          // 计数变量
 
                         Boolean isFloat = false;      // 浮点数标志
-                        String haveMistake = "no";  // 数字常量错误标志
 
                         while ((ch!='\0') && (isDigit(ch) || ch=='.' || ch=='e' || ch=='-'))
                         {
@@ -421,7 +424,7 @@ public class LexicalAnalysis {
                                     ch = charArray[charCurrIndex];
                                 }
                                 tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
-                                        token + "无符号常数错误" });
+                                        token + "无符号数字常量错误" });
                                 jTableErrorInfo.invalidate();
                                 break;
 
@@ -453,9 +456,8 @@ public class LexicalAnalysis {
 
                         while (status != 3)
                         {
-                            charCurrIndex ++ ;
-                            if (charCurrIndex >= charArray.length)
-                                break;
+                            charCurrIndex++ ;
+                            if (charCurrIndex >= charArray.length) break;
 
                             ch = charArray[charCurrIndex];
                             for (int k = 0; k < 4; k++)
@@ -468,6 +470,7 @@ public class LexicalAnalysis {
                                     break;
                                 }
                             }
+                            System.out.println(token);
                         }
 
                         if (status != 3) {
@@ -484,6 +487,75 @@ public class LexicalAnalysis {
                         }
                         token = "";
                     }// 3.字符常量识别
+
+                    // 4.字符串常量切割识别
+                    if (ch == '"')
+                    {
+                        String string = "" + ch;
+                        status = 0;         // 初态设置为0
+                        haveMistake = "no"; // 默认没有词法错误
+
+                        while (status != 3)
+                        {
+                            charCurrIndex++;
+                            if (charCurrIndex >= charArray.length)
+                            {
+                                haveMistake = "yes";
+                                break;
+                            }
+
+                            ch = charArray[charCurrIndex];
+                            if (ch == '\0')
+                            {
+                                haveMistake = "yes";
+                                break;
+                            }
+
+                            for (int k = 0; k < 4; k++)
+                            {
+                                char tmpStr[] = stringDFA[status].toCharArray();
+                                if (inStringDFA(ch,tmpStr[k]))
+                                {
+                                    string += ch;
+                                    if (k ==2 && status == 1)
+                                    {
+                                        // 该字符是转义字符
+                                        if (isEsSt(ch))
+                                           token = token +'\\' + ch;
+                                       else
+                                           token += ch;
+                                    }
+
+                                    if (k != 3 && k != 1)
+                                        token += ch;
+
+                                    status = k;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 字符串常量词法错误处理
+                        switch (haveMistake)
+                        {
+                            case "yes" :
+                                tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
+                                        string + "字符串常量错误 : 引号未封闭"});
+                                jTableErrorInfo.invalidate();
+                                charCurrIndex--;
+                                break;
+
+                            case "no" :
+                                tableModelToken.addRow(new Object[]{token,
+                                        tokenStringConstant.category,tokenStringConstant
+                                        .categoryCode,codeCurrLineNum + 1});
+                                jTableTokenInfo.invalidate();
+                                break;
+                        }
+                        token = "";
+
+                    }// 4.字符串识别
+
 
                 } // 对一行程序代码按单个字符切割处理
             }
