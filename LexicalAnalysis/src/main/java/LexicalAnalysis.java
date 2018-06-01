@@ -556,6 +556,62 @@ public class LexicalAnalysis {
 
                     }// 4.字符串识别
 
+                    // 5.运算符和界符的切割识别
+                    if (isOperator(ch))
+                    {
+                        token += ch;
+                        // 进行切割
+                        // 后面可以组合"="号形成新的运算符,如+=、-=等
+                        if (isPlusEqu(ch))
+                        {
+                            charCurrIndex++;
+                            if (charCurrIndex >= charArray.length) break;
+
+                            ch = charArray[charCurrIndex];
+                            if (ch == '=') {
+                                token += ch;
+                            } else {
+                                // 后面可以组合自身形成新的运算符的，如++、--等
+                                char op = charArray[charCurrIndex - 1];
+                                if (isPlusSelf(op) && ch == op)
+                                    token += ch;
+                                else
+                                    charCurrIndex--;
+                            }
+                        }
+
+                        // 识别是否为分解符
+                        if (token.length() == 1)
+                        {
+                            char op = token.charAt(0);
+                            boolean isBound = false;
+                            for (char boundOp : boundary) {
+                                if (op == boundOp) {
+                                    tableModelToken.addRow(new Object[]{token,
+                                            tokenBoundary.category,tokenBoundary
+                                            .categoryCode,codeCurrLineNum + 1});
+                                    jTableTokenInfo.invalidate();
+                                    isBound = true;
+                                    break;
+                                }
+                            }
+                            // 不是界符
+                            if (!isBound) {
+                                tableModelToken.addRow(new Object[]{token,tokenOperator
+                                        .categoryCode,tokenBoundary.categoryCode,
+                                        codeCurrLineNum + 1});
+                                jTableTokenInfo.invalidate();
+                            }
+
+                        } else {
+                            tableModelToken.addRow(new Object[]{token,tokenOperator
+                                    .categoryCode,tokenBoundary.categoryCode,
+                                    codeCurrLineNum + 1});
+                            jTableTokenInfo.invalidate();
+                        }
+                        token = "";
+                    }// 5.运算符、界符的识别
+
 
                 } // 对一行程序代码按单个字符切割处理
             }
