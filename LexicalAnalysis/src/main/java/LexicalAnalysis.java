@@ -298,8 +298,14 @@ public class LexicalAnalysis {
         // 将编辑区中用户输入的程序代码按行进行分解
         String[] codeLines = codeString.split("\n");
 
-        // 当前进行分析的代码字符串行数
+        // 当前进行分析的代码字符串行数（0开始）
         int codeCurrLineNum;
+
+        // 当前进行识别处理的字符所在字符数组中位置（0开始）
+        int charCurrIndex;
+
+        // 状态图状态标志
+        int status;
 
         // 依次对每行代码进行单词切割、词法分析
         for (codeCurrLineNum = 0; codeCurrLineNum < codeLines.length; codeCurrLineNum++) {
@@ -311,9 +317,9 @@ public class LexicalAnalysis {
                 char[] charArray = strLine.toCharArray();
 
                 // 遍历charArray中每个字符，按照以下规则切割成不同类型的单词Token
-                for (int j = 0; j < charArray.length ; j++)
+                for (charCurrIndex = 0; charCurrIndex < charArray.length ; charCurrIndex++)
                 {
-                    char ch = charArray[j];
+                    char ch = charArray[charCurrIndex];
                     String token = "";  // 用于记录切割出来的Token
 
                     // 1.关键字、标识符的切割识别
@@ -321,15 +327,15 @@ public class LexicalAnalysis {
                     {
                         do {
                             token += ch;
-                            j++;
-                            if (j >= charArray.length)
+                            charCurrIndex++;
+                            if (charCurrIndex >= charArray.length)
                                 break;
 
-                            ch = charArray[j];
+                            ch = charArray[charCurrIndex];
                         } while (ch != '\0' && (isAlpha(ch) || isDigit(ch)));
 
                         // 由于指针加1，需要指针回退
-                        j--;
+                        charCurrIndex--;
 
                         // 切割出来的是关键字
                         if (isKeyword(token))
@@ -355,13 +361,13 @@ public class LexicalAnalysis {
                             }
                         }
                         token = ""; // 当前的token切割识别完毕之后需要重置
-                        
+
                     } // 1.关键字、标识符识别
 
                     // 2.数字常量的切割识别
                     if (isDigit(ch))
                     {
-                        int status = 1; // 初始化进行1状态
+                        status = 1; // 初始化进入1状态
                         int k;          // 计数变量
 
                         Boolean isFloat = false;      // 浮点数标志
@@ -384,11 +390,11 @@ public class LexicalAnalysis {
 
                             if (k > 6) break;
 
-                            j++; // 遍历符号先前移动
+                            charCurrIndex++; // 遍历符号先前移动
 
-                            if (j >= charArray.length) break;
+                            if (charCurrIndex >= charArray.length) break;
 
-                            ch = charArray[j];
+                            ch = charArray[charCurrIndex];
                         }
 
                         if(status == 2 || status == 4 || status == 5)
@@ -408,11 +414,11 @@ public class LexicalAnalysis {
                                 while (ch != '\0' && ch != ',' && ch != ';' && ch != ' ')
                                 {
                                     token += ch;
-                                    j++;
-                                    if (j >= charArray.length)
+                                    charCurrIndex++;
+                                    if (charCurrIndex >= charArray.length)
                                         break;
 
-                                    ch = charArray[j];
+                                    ch = charArray[charCurrIndex];
                                 }
                                 tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
                                         token + "无符号常数错误" });
@@ -438,6 +444,46 @@ public class LexicalAnalysis {
                         token = "";
 
                     }// 2.数字常量(整型、浮点数)的识别
+
+                    // 3.字符常量的切割识别
+                    if (ch == '\'')
+                    {
+                        status = 0;  // 初始化状态为0
+                        token += ch; // token + '
+
+                        while (status != 3)
+                        {
+                            charCurrIndex ++ ;
+                            if (charCurrIndex >= charArray.length)
+                                break;
+
+                            ch = charArray[charCurrIndex];
+                            for (int k = 0; k < 4; k++)
+                            {
+                                char tmpStr[] = charDFA[status].toCharArray();
+                                if (inCharDFA(ch,tmpStr[k]))
+                                {
+                                    token += ch;
+                                    status = k;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (status != 3) {
+                            // 错误处理
+                            tableModelError.addRow(new Object[]{codeCurrLineNum + 1,token +
+                                 "字符常量错误 : 引号未封闭"});
+                            jTableErrorInfo.invalidate();
+
+                            charCurrIndex--;
+                        } else {
+                            tableModelToken.addRow(new Object[]{token, tokenCharConstant
+                                    .category,tokenCharConstant.categoryCode});
+                            jTableTokenInfo.invalidate();
+                        }
+                        token = "";
+                    }// 3.字符常量识别
 
                 } // 对一行程序代码按单个字符切割处理
             }
