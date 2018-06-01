@@ -163,6 +163,14 @@ public class LexicalAnalysis {
         return false;
     }
 
+    public static Boolean isBoundary(char ch) {
+        for (char boundOp : boundary) {
+            if (ch == boundOp)
+                return true;
+        }
+        return false;
+    }
+
     /*
      * @author MYXuu
      * @description : 判断某个单词是否为语言关键字
@@ -364,8 +372,7 @@ public class LexicalAnalysis {
                                 jTableSymbolInfo.invalidate();
                             }
                         }
-                        token = ""; // 当前的token切割识别完毕之后需要重置
-
+                        continue;
                     } // 1.关键字、标识符识别
 
                     // 2.数字常量的切割识别
@@ -444,7 +451,7 @@ public class LexicalAnalysis {
                                 }
                                 break;
                         }
-                        token = "";
+                        continue;
 
                     }// 2.数字常量(整型、浮点数)的识别
 
@@ -470,7 +477,6 @@ public class LexicalAnalysis {
                                     break;
                                 }
                             }
-                            System.out.println(token);
                         }
 
                         if (status != 3) {
@@ -485,7 +491,7 @@ public class LexicalAnalysis {
                                     .category,tokenCharConstant.categoryCode});
                             jTableTokenInfo.invalidate();
                         }
-                        token = "";
+                        continue;
                     }// 3.字符常量识别
 
                     // 4.字符串常量切割识别
@@ -552,64 +558,59 @@ public class LexicalAnalysis {
                                 jTableTokenInfo.invalidate();
                                 break;
                         }
-                        token = "";
-
+                        continue;
                     }// 4.字符串识别
 
                     // 5.运算符和界符的切割识别
                     if (isOperator(ch))
                     {
                         token += ch;
-                        // 进行切割
+
                         // 后面可以组合"="号形成新的运算符,如+=、-=等
+                        // 若可以则预读下一个字符
                         if (isPlusEqu(ch))
                         {
                             charCurrIndex++;
-                            if (charCurrIndex >= charArray.length) break;
+                            if (charCurrIndex >= charArray.length)
+                                break;
 
-                            ch = charArray[charCurrIndex];
-                            if (ch == '=') {
-                                token += ch;
+                            // 预读下一个字符
+                            char nextCh = charArray[charCurrIndex];
+
+                            // 组合'='号形成新的运算符
+                            if (nextCh == '=') {
+                                token += nextCh;
                             } else {
-                                // 后面可以组合自身形成新的运算符的，如++、--等
-                                char op = charArray[charCurrIndex - 1];
-                                if (isPlusSelf(op) && ch == op)
-                                    token += ch;
+                                // 在可以组合'='号的运算符中，有些运算符还可以
+                                // 组合自身形成新的运算符，如++、--、||等
+                                char preOp = charArray[charCurrIndex - 1];
+                                if (isPlusSelf(preOp) && nextCh == preOp)
+                                    token += nextCh;
                                 else
-                                    charCurrIndex--;
+                                    charCurrIndex--; // 不能组合自身和'=',由于预读原因则需要回退
                             }
                         }
 
-                        // 识别是否为分解符
-                        if (token.length() == 1)
-                        {
-                            char op = token.charAt(0);
-                            boolean isBound = false;
-                            for (char boundOp : boundary) {
-                                if (op == boundOp) {
-                                    tableModelToken.addRow(new Object[]{token,
-                                            tokenBoundary.category,tokenBoundary
-                                            .categoryCode,codeCurrLineNum + 1});
-                                    jTableTokenInfo.invalidate();
-                                    isBound = true;
-                                    break;
-                                }
-                            }
-                            // 不是界符
-                            if (!isBound) {
-                                tableModelToken.addRow(new Object[]{token,tokenOperator
-                                        .categoryCode,tokenBoundary.categoryCode,
-                                        codeCurrLineNum + 1});
+                        // 对于切割出来的token为单字符需要识别是否为界符
+                        if (token.length() == 1) {
+                            // 界符
+                            System.out.println(isBoundary(token.charAt(0)));
+                            if (isBoundary(token.charAt(0)))
+                            {
+                                tableModelToken.addRow(new Object[]{token,
+                                        tokenBoundary.category, tokenBoundary
+                                        .categoryCode, codeCurrLineNum + 1});
                                 jTableTokenInfo.invalidate();
                             }
 
                         } else {
-                            tableModelToken.addRow(new Object[]{token,tokenOperator
-                                    .categoryCode,tokenBoundary.categoryCode,
+                            // 识别为运算符
+                            tableModelToken.addRow(new Object[]{token, tokenOperator
+                                    .category, tokenOperator.categoryCode,
                                     codeCurrLineNum + 1});
                             jTableTokenInfo.invalidate();
                         }
-                        token = "";
+                        continue;
                     }// 5.运算符、界符的识别
 
 
