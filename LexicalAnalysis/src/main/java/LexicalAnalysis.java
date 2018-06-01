@@ -208,13 +208,78 @@ public class LexicalAnalysis {
     }
 
 
+    /*
+     * @author MYXuu
+     * @description : 判断是否为转义字符
+     * @date 2018/5/31 21:19
+     *
+     * @param [ch]
+     * @return java.lang.Boolean
+     */
     public static Boolean isEsSt(char ch) {
         return ch == 'a' || ch == 'b' || ch == 'f' || ch == 'n' || ch == 'r' || ch == 't'
                 || ch == 'v' || ch == '0' || ch == '\\' || ch == '\'' || ch == '\"';
     }
 
+    public static Boolean inStringDFA(char ch, char key) {
+        if (key == 'a')
+            return true;
+        if (key == '\\')
+            return ch == key;
+        if (key == '"')
+            return ch == key;
+        if (key == 'b')
+            return ch != '\\' && ch != '"';
+        return false;
+    }
 
 
+    public static Boolean inCharDFA(char ch, char key) {
+        if (key == 'a')
+            return true;
+        if (key == '\\')
+            return ch == key;
+        if (key == '\'')
+            return ch == key;
+        if (key == 'b')
+            return ch != '\\' && ch != '\'';
+        return false;
+    }
+
+    //判断输入符号是否符合状态机
+    public static int inDigitDFA(char ch, char test) {
+        if (test == 'd') {
+            if (isDigit(ch))
+                return 1;
+            else
+                return 0;
+        } else {
+            if (ch == test)
+                return 1;
+            else
+                return 0;
+        }
+    }
+
+    public static Boolean inNoteDFA(char ch, char nD, int s) {
+        if (s == 2) {
+            if (nD == 'c') {
+                if (ch != '*')
+                    return true;
+                else
+                    return false;
+            }
+        }
+        if (s == 3) {
+            if (nD == 'c') {
+                if (ch != '*' && ch != '/')
+                    return true;
+                else
+                    return false;
+            }
+        }
+        return ch == nD;
+    }
 
 
     /*
@@ -233,10 +298,13 @@ public class LexicalAnalysis {
         // 将编辑区中用户输入的程序代码按行进行分解
         String[] codeLines = codeString.split("\n");
 
+        // 当前进行分析的代码字符串行数
+        int codeCurrLineNum;
+
         // 依次对每行代码进行单词切割、词法分析
-        for (int i = 0; i < codeLines.length; i++) {
+        for (codeCurrLineNum = 0; codeCurrLineNum < codeLines.length; codeCurrLineNum++) {
             // 取出一行代码字符串
-            String strLine = codeLines[i];
+            String strLine = codeLines[codeCurrLineNum];
 
             if (!strLine.equals("")) {
                 // 对当前行的代码字符串进行切割，切割成单个字符存储的字符数组
@@ -267,15 +335,15 @@ public class LexicalAnalysis {
                         if (isKeyword(token))
                         {
                             tableModelToken.addRow(new Object[]{token,tokenKeyword.category,
-                                    tokenKeyword.categoryCode, i + 1});
+                                    tokenKeyword.categoryCode, codeCurrLineNum + 1});
                             jTableTokenInfo.invalidate();
                         }
 
                         // 切割出来的token是标识符
                         if (!isKeyword(token))
                         {
-                            tableModelToken.addRow(new Object[]{token,tokenIdentifier.category,
-                                    tokenIdentifier.categoryCode,i + 1});
+                            tableModelToken.addRow(new Object[]{token,tokenIdentifier.
+                                    category,tokenIdentifier.categoryCode,codeCurrLineNum+1});
                             jTableTokenInfo.invalidate();
 
                             // 如果符号表为空或者符号表不包含当前的token则需要加入符号表中
@@ -287,18 +355,93 @@ public class LexicalAnalysis {
                             }
                         }
                         token = ""; // 当前的token切割识别完毕之后需要重置
-                    }
+                        
+                    } // 1.关键字、标识符识别
 
                     // 2.数字常量的切割识别
                     if (isDigit(ch))
                     {
+                        int status = 1; // 初始化进行1状态
+                        int k;          // 计数变量
 
-                    }
+                        Boolean isFloat = false;      // 浮点数标志
+                        String haveMistake = "no";  // 数字常量错误标志
 
-                }
+                        while ((ch!='\0') && (isDigit(ch) || ch=='.' || ch=='e' || ch=='-'))
+                        {
+                            if (ch == '.' || ch == 'e')
+                                isFloat = true;
 
+                            for (k = 0; k<=6;k++)
+                            {
+                                char tmpStr[] = digitDFA[status].toCharArray();
+                                if (ch != '#' && 1 == inDigitDFA(ch,tmpStr[k])) {
+                                    token += ch;
+                                    status = k;
+                                    break;
+                                }
+                            }
+
+                            if (k > 6) break;
+
+                            j++; // 遍历符号先前移动
+
+                            if (j >= charArray.length) break;
+
+                            ch = charArray[j];
+                        }
+
+                        if(status == 2 || status == 4 || status == 5)
+                            haveMistake = "yes";
+
+                        if (status == 1 || status == 3 || status == 6) {
+                            // ch != ' ' 条件用于 int a = 123 ;常量与分号有空格时不被识别为无
+                            // 效常量，因为ch = '' 时会导致!isDigit(ch)返回false
+                            if ((!isOperator(ch) || ch == '.') && !isDigit(ch) && ch != ' ')
+                                haveMistake = "yes";
+                        }
+
+
+                        // 错误处理
+                        switch (haveMistake) {
+                            case "yes" :
+                                while (ch != '\0' && ch != ',' && ch != ';' && ch != ' ')
+                                {
+                                    token += ch;
+                                    j++;
+                                    if (j >= charArray.length)
+                                        break;
+
+                                    ch = charArray[j];
+                                }
+                                tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
+                                        token + "无符号常数错误" });
+                                jTableErrorInfo.invalidate();
+                                break;
+
+                            case "no"  :
+                                if (isFloat) {
+                                    // 浮点数常量
+                                    tableModelToken.addRow(new Object[]{token,
+                                            tokenIntConstant.category,tokenIntConstant
+                                            .categoryCode,codeCurrLineNum + 1});
+                                    jTableTokenInfo.invalidate();
+                                } else {
+                                    // 整型常量
+                                    tableModelToken.addRow(new Object[]{token,
+                                            tokenFloatConstant.category,tokenFloatConstant
+                                            .categoryCode,codeCurrLineNum + 1});
+                                    jTableTokenInfo.invalidate();
+                                }
+                                break;
+                        }
+                        token = "";
+
+                    }// 2.数字常量(整型、浮点数)的识别
+
+                } // 对一行程序代码按单个字符切割处理
             }
-        }
+        }// 对整个输入程序代码按行处理
 
 
     }

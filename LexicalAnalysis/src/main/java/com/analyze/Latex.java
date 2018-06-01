@@ -229,7 +229,6 @@ public class Latex {
             } else {
                 // 将程序当前行的代码字符串转化为字符串数组
                 char[] strLine = str.toCharArray();
-
                 for (int i = 0; i < strLine.length; i++) {
                     //遍历strLine中的每个字符
                     char ch = strLine[i];
