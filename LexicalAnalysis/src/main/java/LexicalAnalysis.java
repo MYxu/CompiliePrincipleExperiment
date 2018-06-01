@@ -29,7 +29,7 @@ public class LexicalAnalysis {
 
     // 运算符
     public static char operator[] = { '+', '-', '*', '=', '<', '>', '&', '|', '~',
-            '^', '!', '(', ')', '[', ']', '{', '}', '%', ';', ',', '#', '.' };
+            '^', '!', '(', ')', '[', ']', '{', '}', '%', '/', ';', ',', '#', '.' };
 
     // 界符
     public static char boundary[] = { ',', ';', '[', ']', '(', ')', '.', '{', '}'};
@@ -163,6 +163,14 @@ public class LexicalAnalysis {
         return false;
     }
 
+    /*
+     * @author MYXuu
+     * @description : 判断单个字符是否界符
+     * @date 2018/6/2 2:11
+     *
+     * @param [ch]  单个字符
+     * @return java.lang.Boolean
+     */
     public static Boolean isBoundary(char ch) {
         for (char boundOp : boundary) {
             if (ch == boundOp)
@@ -227,6 +235,29 @@ public class LexicalAnalysis {
     public static Boolean isEsSt(char ch) {
         return ch == 'a' || ch == 'b' || ch == 'f' || ch == 'n' || ch == 'r' || ch == 't'
                 || ch == 'v' || ch == '0' || ch == '\\' || ch == '\'' || ch == '\"';
+    }
+
+
+    /*
+     * @author MYXuu
+     * @description : 当前符号为'/'时，若预读下一个字符为为'/'或者'*'时
+     *                则说明这是注释而非运算符
+     * @date 2018/6/2 2:29
+     *
+     * @param [ch, charArray, charCurrIndex]
+     * @return java.lang.Boolean
+     */
+    public static Boolean isAnnotate(char ch,char[] charArray,int charCurrIndex) {
+
+        // 想预读下一个字符需要满足条件charCurrIndex + 1 < charArray.length
+        // 即当前字符不是字符数组中最后一个字符
+        if (charCurrIndex + 1 >= charArray.length)
+            return false;
+        char nextCh = charArray[charCurrIndex + 1];
+        if (ch == '/' && (nextCh == '/' || nextCh == '*'))
+            return true;
+        return false;
+
     }
 
     public static Boolean inStringDFA(char ch, char key) {
@@ -562,17 +593,19 @@ public class LexicalAnalysis {
                     }// 4.字符串识别
 
                     // 5.运算符和界符的切割识别
-                    if (isOperator(ch))
+                    // 由于符号'/'有可能是运算符'/'、注释'//'和'/*'
+                    // 因此需要进行isAnnotate()判断
+                    if (isOperator(ch) && !isAnnotate(ch,charArray,charCurrIndex))
                     {
                         token += ch;
-
+                        System.out.println(2);
                         // 后面可以组合"="号形成新的运算符,如+=、-=等
                         // 若可以则预读下一个字符
-                        if (isPlusEqu(ch))
+                        // 预读必须满足条件 charCurrIndex + 1 < charArray.length
+                        // 注意charCurrIndex从0开始
+                        if (isPlusEqu(ch) && (charCurrIndex + 1 < charArray.length))
                         {
                             charCurrIndex++;
-                            if (charCurrIndex >= charArray.length)
-                                break;
 
                             // 预读下一个字符
                             char nextCh = charArray[charCurrIndex];
@@ -592,17 +625,12 @@ public class LexicalAnalysis {
                         }
 
                         // 对于切割出来的token为单字符需要识别是否为界符
-                        if (token.length() == 1) {
-                            // 界符
-                            System.out.println(isBoundary(token.charAt(0)));
-                            if (isBoundary(token.charAt(0)))
-                            {
-                                tableModelToken.addRow(new Object[]{token,
-                                        tokenBoundary.category, tokenBoundary
-                                        .categoryCode, codeCurrLineNum + 1});
-                                jTableTokenInfo.invalidate();
-                            }
-
+                        if (token.length() == 1 && isBoundary(token.charAt(0))) {
+                            // 识别为界符
+                            tableModelToken.addRow(new Object[]{token,
+                                    tokenBoundary.category, tokenBoundary.categoryCode,
+                                    codeCurrLineNum + 1});
+                            jTableTokenInfo.invalidate();
                         } else {
                             // 识别为运算符
                             tableModelToken.addRow(new Object[]{token, tokenOperator
@@ -612,6 +640,11 @@ public class LexicalAnalysis {
                         }
                         continue;
                     }// 5.运算符、界符的识别
+                    if (isAnnotate(ch,charArray,charCurrIndex)) {
+                        token = token + ch + charArray[++charCurrIndex];
+                        tableModelToken.addRow(new Object[]{token,tokenAnnotate.category,
+                        tokenAnnotate.categoryCode,codeCurrLineNum + 1});
+                    }
 
 
                 } // 对一行程序代码按单个字符切割处理
