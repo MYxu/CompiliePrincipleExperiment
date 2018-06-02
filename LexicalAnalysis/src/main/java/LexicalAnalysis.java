@@ -21,18 +21,18 @@ public class LexicalAnalysis {
             "char", "case", "class", "const", "continue", "default", "do",
             "double", "else", "enum", "extends", "final", "finally", "continue",
             "float", "for", "goto", "if", "implements", "import", "instanceof",
-            "int", "interface", "long", "native", "new", "package","private",
-            "protected","public", "return","short","static","strictfp","super",
-            "synchronized","this", "throw","throws","transient","try","void",
-            "volatile","while"
+            "int", "interface", "long", "native", "new", "package", "private",
+            "protected", "public", "return", "short", "static", "strictfp", "super",
+            "synchronized", "this", "throw", "throws", "transient", "try", "void",
+            "volatile", "while"
     };
 
     // 运算符
-    public static char operator[] = { '+', '-', '*', '=', '<', '>', '&', '|', '~',
-            '^', '!', '(', ')', '[', ']', '{', '}', '%', '/', ';', ',', '#', '.' };
+    public static char operator[] = {'+', '-', '*', '=', '<', '>', '&', '|', '~',
+            '^', '!', '(', ')', '[', ']', '{', '}', '%', '/', ';', ',', '#', '.'};
 
     // 界符
-    public static char boundary[] = { ',', ';', '[', ']', '(', ')', '.', '{', '}'};
+    public static char boundary[] = {',', ';', '[', ']', '(', ')', '.', '{', '}'};
 
     // 字符串DFA,a代表任意字符，b代表除\和'之外的字符
     public static String stringDFA[] = {
@@ -82,7 +82,7 @@ public class LexicalAnalysis {
 
     // 存储符号表信息
     public static int symbol_pos; // 记录符号表位置
-    public static Map<String,Integer> symbol = new HashMap<>(); // 符号表HashMap
+    public static Map<String, Integer> symbol = new HashMap<>(); // 符号表HashMap
 
     // UI界面
     private String codeString;                  // 存储编辑区中输入的代码字符串
@@ -94,29 +94,28 @@ public class LexicalAnalysis {
     private DefaultTableModel tableModelSymbol; // 用于添加symbol信息到表格中
 
     // 构造函数
-    public LexicalAnalysis(String codeString,JTable jTableTokenInfo,JTable jTableErrorInfo,
-                           JTable jTableSymbolInfo)
-    {
+    public LexicalAnalysis(String codeString, JTable jTableTokenInfo, JTable jTableErrorInfo,
+                           JTable jTableSymbolInfo) {
 
         // 初始化Token类别、种别码信息
-        this.tokenKeyword        = new TokenInfo("关键字","100");
-        this.tokenOperator       = new TokenInfo("运算符","200");
-        this.tokenBoundary       = new TokenInfo("界符","300");
-        this.tokenIdentifier     = new TokenInfo("标识符","400");
-        this.tokenAnnotate       = new TokenInfo("注释","500");
-        this.tokenIntConstant    = new TokenInfo("整型常量","600");
-        this.tokenFloatConstant  = new TokenInfo("浮点型常量","601");
-        this.tokenCharConstant   = new TokenInfo("字符常量","602");
-        this.tokenStringConstant = new TokenInfo("字符串常量","603");
+        this.tokenKeyword = new TokenInfo("关键字", "100");
+        this.tokenOperator = new TokenInfo("运算符", "200");
+        this.tokenBoundary = new TokenInfo("界符", "300");
+        this.tokenIdentifier = new TokenInfo("标识符", "400");
+        this.tokenAnnotate = new TokenInfo("注释", "500");
+        this.tokenIntConstant = new TokenInfo("整型常量", "600");
+        this.tokenFloatConstant = new TokenInfo("浮点型常量", "601");
+        this.tokenCharConstant = new TokenInfo("字符常量", "602");
+        this.tokenStringConstant = new TokenInfo("字符串常量", "603");
 
         // 初始化UI界面
-        this.codeString       = codeString;
-        this.jTableTokenInfo  = jTableTokenInfo;
-        this.jTableErrorInfo  = jTableErrorInfo;
+        this.codeString = codeString;
+        this.jTableTokenInfo = jTableTokenInfo;
+        this.jTableErrorInfo = jTableErrorInfo;
         this.jTableSymbolInfo = jTableSymbolInfo;
 
-        this.tableModelToken  = (DefaultTableModel) jTableTokenInfo.getModel();
-        this.tableModelError  = (DefaultTableModel) jTableErrorInfo.getModel();
+        this.tableModelToken = (DefaultTableModel) jTableTokenInfo.getModel();
+        this.tableModelError = (DefaultTableModel) jTableErrorInfo.getModel();
         this.tableModelSymbol = (DefaultTableModel) jTableSymbolInfo.getModel();
 
     }
@@ -131,7 +130,7 @@ public class LexicalAnalysis {
      */
     public static Boolean isAlpha(char ch) {
         return (
-                (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_' )
+                (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_')
         );
     }
 
@@ -208,7 +207,7 @@ public class LexicalAnalysis {
 
         return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%'
                 || ch == '=' || ch == '>' || ch == '<' || ch == '&' || ch == '|'
-                || ch == '^' || ch == '!' ;
+                || ch == '^' || ch == '!';
     }
 
     /*
@@ -247,7 +246,7 @@ public class LexicalAnalysis {
      * @param [ch, charArray, charCurrIndex]
      * @return java.lang.Boolean
      */
-    public static Boolean isAnnotate(char ch,char[] charArray,int charCurrIndex) {
+    public static Boolean isAnnotate(char ch, char[] charArray, int charCurrIndex) {
 
         // 想预读下一个字符需要满足条件charCurrIndex + 1 < charArray.length
         // 即当前字符不是字符数组中最后一个字符
@@ -360,14 +359,12 @@ public class LexicalAnalysis {
                 char[] charArray = strLine.toCharArray();
 
                 // 遍历charArray中每个字符，按照以下规则切割成不同类型的单词Token
-                for (charCurrIndex = 0; charCurrIndex < charArray.length ; charCurrIndex++)
-                {
+                for (charCurrIndex = 0; charCurrIndex < charArray.length; charCurrIndex++) {
                     char ch = charArray[charCurrIndex];
                     String token = "";  // 用于记录切割出来的Token
 
                     // 1.关键字、标识符的切割识别
-                    if (isAlpha(ch))
-                    {
+                    if (isAlpha(ch)) {
                         do {
                             token += ch;
                             charCurrIndex++;
@@ -381,25 +378,23 @@ public class LexicalAnalysis {
                         charCurrIndex--;
 
                         // 切割出来的是关键字
-                        if (isKeyword(token))
-                        {
-                            tableModelToken.addRow(new Object[]{token,tokenKeyword.category,
+                        if (isKeyword(token)) {
+                            tableModelToken.addRow(new Object[]{token, tokenKeyword.category,
                                     tokenKeyword.categoryCode, codeCurrLineNum + 1});
                             jTableTokenInfo.invalidate();
                         }
 
                         // 切割出来的token是标识符
-                        if (!isKeyword(token))
-                        {
-                            tableModelToken.addRow(new Object[]{token,tokenIdentifier.
-                                    category,tokenIdentifier.categoryCode,codeCurrLineNum+1});
+                        if (!isKeyword(token)) {
+                            tableModelToken.addRow(new Object[]{token, tokenIdentifier.
+                                    category, tokenIdentifier.categoryCode, codeCurrLineNum + 1});
                             jTableTokenInfo.invalidate();
 
                             // 如果符号表为空或者符号表不包含当前的token则需要加入符号表中
                             if (symbol.isEmpty() ||
                                     (!symbol.isEmpty() && !symbol.containsKey(token))) {
-                                tableModelSymbol.addRow(new Object[]{token,symbol_pos});
-                                symbol_pos ++ ;
+                                tableModelSymbol.addRow(new Object[]{token, symbol_pos});
+                                symbol_pos++;
                                 jTableSymbolInfo.invalidate();
                             }
                         }
@@ -407,22 +402,19 @@ public class LexicalAnalysis {
                     } // 1.关键字、标识符识别
 
                     // 2.数字常量的切割识别
-                    if (isDigit(ch))
-                    {
+                    if (isDigit(ch)) {
                         status = 1; // 初始化进入1状态
                         int k;          // 计数变量
 
                         Boolean isFloat = false;      // 浮点数标志
 
-                        while ((ch!='\0') && (isDigit(ch) || ch=='.' || ch=='e' || ch=='-'))
-                        {
+                        while ((ch != '\0') && (isDigit(ch) || ch == '.' || ch == 'e' || ch == '-')) {
                             if (ch == '.' || ch == 'e')
                                 isFloat = true;
 
-                            for (k = 0; k<=6;k++)
-                            {
+                            for (k = 0; k <= 6; k++) {
                                 char tmpStr[] = digitDFA[status].toCharArray();
-                                if (ch != '#' && 1 == inDigitDFA(ch,tmpStr[k])) {
+                                if (ch != '#' && 1 == inDigitDFA(ch, tmpStr[k])) {
                                     token += ch;
                                     status = k;
                                     break;
@@ -438,7 +430,7 @@ public class LexicalAnalysis {
                             ch = charArray[charCurrIndex];
                         }
 
-                        if(status == 2 || status == 4 || status == 5)
+                        if (status == 2 || status == 4 || status == 5)
                             haveMistake = "yes";
 
                         if (status == 1 || status == 3 || status == 6) {
@@ -451,9 +443,8 @@ public class LexicalAnalysis {
 
                         // 错误处理
                         switch (haveMistake) {
-                            case "yes" :
-                                while (ch != '\0' && ch != ',' && ch != ';' && ch != ' ')
-                                {
+                            case "yes":
+                                while (ch != '\0' && ch != ',' && ch != ';' && ch != ' ') {
                                     token += ch;
                                     charCurrIndex++;
                                     if (charCurrIndex >= charArray.length)
@@ -462,22 +453,22 @@ public class LexicalAnalysis {
                                     ch = charArray[charCurrIndex];
                                 }
                                 tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
-                                        token + "无符号数字常量错误" });
+                                        token + "无符号数字常量错误"});
                                 jTableErrorInfo.invalidate();
                                 break;
 
-                            case "no"  :
+                            case "no":
                                 if (isFloat) {
                                     // 浮点数常量
                                     tableModelToken.addRow(new Object[]{token,
-                                            tokenIntConstant.category,tokenIntConstant
-                                            .categoryCode,codeCurrLineNum + 1});
+                                            tokenFloatConstant.category, tokenFloatConstant
+                                            .categoryCode, codeCurrLineNum + 1});
                                     jTableTokenInfo.invalidate();
                                 } else {
                                     // 整型常量
                                     tableModelToken.addRow(new Object[]{token,
-                                            tokenFloatConstant.category,tokenFloatConstant
-                                            .categoryCode,codeCurrLineNum + 1});
+                                            tokenIntConstant.category, tokenIntConstant
+                                            .categoryCode, codeCurrLineNum + 1});
                                     jTableTokenInfo.invalidate();
                                 }
                                 break;
@@ -487,22 +478,18 @@ public class LexicalAnalysis {
                     }// 2.数字常量(整型、浮点数)的识别
 
                     // 3.字符常量的切割识别
-                    if (ch == '\'')
-                    {
+                    if (ch == '\'') {
                         status = 0;  // 初始化状态为0
                         token += ch; // token + '
 
-                        while (status != 3)
-                        {
-                            charCurrIndex++ ;
+                        while (status != 3) {
+                            charCurrIndex++;
                             if (charCurrIndex >= charArray.length) break;
 
                             ch = charArray[charCurrIndex];
-                            for (int k = 0; k < 4; k++)
-                            {
+                            for (int k = 0; k < 4; k++) {
                                 char tmpStr[] = charDFA[status].toCharArray();
-                                if (inCharDFA(ch,tmpStr[k]))
-                                {
+                                if (inCharDFA(ch, tmpStr[k])) {
                                     token += ch;
                                     status = k;
                                     break;
@@ -512,55 +499,48 @@ public class LexicalAnalysis {
 
                         if (status != 3) {
                             // 错误处理
-                            tableModelError.addRow(new Object[]{codeCurrLineNum + 1,token +
-                                 "字符常量错误 : 引号未封闭"});
+                            tableModelError.addRow(new Object[]{codeCurrLineNum + 1, token +
+                                    "字符常量错误 : 引号未封闭"});
                             jTableErrorInfo.invalidate();
 
                             charCurrIndex--;
                         } else {
                             tableModelToken.addRow(new Object[]{token, tokenCharConstant
-                                    .category,tokenCharConstant.categoryCode});
+                                    .category, tokenCharConstant.categoryCode});
                             jTableTokenInfo.invalidate();
                         }
                         continue;
                     }// 3.字符常量识别
 
                     // 4.字符串常量切割识别
-                    if (ch == '"')
-                    {
+                    if (ch == '"') {
                         String string = "" + ch;
                         status = 0;         // 初态设置为0
                         haveMistake = "no"; // 默认没有词法错误
 
-                        while (status != 3)
-                        {
+                        while (status != 3) {
                             charCurrIndex++;
-                            if (charCurrIndex >= charArray.length)
-                            {
+                            if (charCurrIndex >= charArray.length) {
                                 haveMistake = "yes";
                                 break;
                             }
 
                             ch = charArray[charCurrIndex];
-                            if (ch == '\0')
-                            {
+                            if (ch == '\0') {
                                 haveMistake = "yes";
                                 break;
                             }
 
-                            for (int k = 0; k < 4; k++)
-                            {
+                            for (int k = 0; k < 4; k++) {
                                 char tmpStr[] = stringDFA[status].toCharArray();
-                                if (inStringDFA(ch,tmpStr[k]))
-                                {
+                                if (inStringDFA(ch, tmpStr[k])) {
                                     string += ch;
-                                    if (k ==2 && status == 1)
-                                    {
+                                    if (k == 2 && status == 1) {
                                         // 该字符是转义字符
                                         if (isEsSt(ch))
-                                           token = token +'\\' + ch;
-                                       else
-                                           token += ch;
+                                            token = token + '\\' + ch;
+                                        else
+                                            token += ch;
                                     }
 
                                     if (k != 3 && k != 1)
@@ -573,19 +553,18 @@ public class LexicalAnalysis {
                         }
 
                         // 字符串常量词法错误处理
-                        switch (haveMistake)
-                        {
-                            case "yes" :
+                        switch (haveMistake) {
+                            case "yes":
                                 tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
                                         string + "字符串常量错误 : 引号未封闭"});
                                 jTableErrorInfo.invalidate();
                                 charCurrIndex--;
                                 break;
 
-                            case "no" :
+                            case "no":
                                 tableModelToken.addRow(new Object[]{token,
-                                        tokenStringConstant.category,tokenStringConstant
-                                        .categoryCode,codeCurrLineNum + 1});
+                                        tokenStringConstant.category, tokenStringConstant
+                                        .categoryCode, codeCurrLineNum + 1});
                                 jTableTokenInfo.invalidate();
                                 break;
                         }
@@ -595,16 +574,14 @@ public class LexicalAnalysis {
                     // 5.运算符和界符的切割识别
                     // 由于符号'/'有可能是运算符'/'、注释'//'和'/*'
                     // 因此需要进行isAnnotate()判断
-                    if (isOperator(ch) && !isAnnotate(ch,charArray,charCurrIndex))
-                    {
+                    if (isOperator(ch) && !isAnnotate(ch, charArray, charCurrIndex)) {
                         token += ch;
                         System.out.println(2);
                         // 后面可以组合"="号形成新的运算符,如+=、-=等
                         // 若可以则预读下一个字符
                         // 预读必须满足条件 charCurrIndex + 1 < charArray.length
                         // 注意charCurrIndex从0开始
-                        if (isPlusEqu(ch) && (charCurrIndex + 1 < charArray.length))
-                        {
+                        if (isPlusEqu(ch) && (charCurrIndex + 1 < charArray.length)) {
                             charCurrIndex++;
 
                             // 预读下一个字符
@@ -640,17 +617,80 @@ public class LexicalAnalysis {
                         }
                         continue;
                     }// 5.运算符、界符的识别
-                    if (isAnnotate(ch,charArray,charCurrIndex)) {
-                        token = token + ch + charArray[++charCurrIndex];
-                        tableModelToken.addRow(new Object[]{token,tokenAnnotate.category,
-                        tokenAnnotate.categoryCode,codeCurrLineNum + 1});
-                    }
+
+                    // 6.注释的切割识别
+                    if (isAnnotate(ch, charArray, charCurrIndex)) {
+                        haveMistake = "no";
+                        status = 0;
+
+                        token += ch;// token = '/'
+                        charCurrIndex++;
+                        char nextCh = charArray[charCurrIndex];
+
+                        // 多行注释
+                        if (nextCh == '*')
+                        {
+                            token += nextCh;
+                            status = 2;
+                            while (status != 4)
+                            {
+                                charCurrIndex++;
+                                if (charCurrIndex >= charArray.length) break;
+                                ch = charArray[charCurrIndex];
+
+                                if (ch == '\0')
+                                {
+                                    haveMistake = "yes";
+                                    break;
+                                }
+
+                                for (int k = 0; k <= 4; k++)
+                                {
+                                    char[] tmpStr = noteDFA[status].toCharArray();
+                                    if (inNoteDFA(ch, tmpStr[k], status))
+                                    {
+                                        token += ch;
+                                        status = k;
+                                        break;
+                                    }
+                                }
+                            }
+                        }// 多行注释
+
+                        // 单行注释
+                        if (nextCh == '/')
+                        {
+                            int index = strLine.indexOf("//");
+                            String tmpStr = strLine.substring(index);
+
+                            for (int k = 0; k < tmpStr.length(); k++)
+                                charCurrIndex++;
+
+                            token = tmpStr;
+                            status = 4;
+
+                        }// 单行注释
+
+                        // 注释词法分析错误处理
+                        if (haveMistake == "yes" || status != 4) {
+                            tableModelError.addRow(new Object[]{codeCurrLineNum + 1,
+                                    "注释错误 : 注释未封闭"});
+                            jTableErrorInfo.invalidate();
+                            charCurrIndex--;
+                        } else {
+                            tableModelToken.addRow(new Object[]{token, tokenAnnotate.category,
+                                    tokenAnnotate.categoryCode, codeCurrLineNum + 1});
+                            jTableTokenInfo.invalidate();
+                        }
+                        continue;
+                    }// 6.注释的识别
 
 
                 } // 对一行程序代码按单个字符切割处理
-            }
+
+            }// 当前行不为空
+
         }// 对整个输入程序代码按行处理
 
-
-    }
+    }// 词法分析
 }

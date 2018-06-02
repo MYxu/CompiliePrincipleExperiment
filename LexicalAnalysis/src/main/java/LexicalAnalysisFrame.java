@@ -269,6 +269,14 @@ public class LexicalAnalysisFrame extends javax.swing.JFrame {
     private void jMenuItemCleanCodeActionPerformed(java.awt.event.ActionEvent evt) {
         textAreaCode.setText("");
 
+        DefaultTableModel tokenInfoModel = (DefaultTableModel) tableTokenInfo.getModel();
+        tokenInfoModel.setRowCount(0);
+
+        DefaultTableModel symbolInfoModel = (DefaultTableModel) tableSymbolInfo.getModel();
+        symbolInfoModel.setRowCount(0);
+
+        DefaultTableModel errorInfoModel = (DefaultTableModel) tableErrorInfo.getModel();
+        errorInfoModel.setRowCount(0);
     }
 
     private void jMenuItemLexicalAnalysisFileActionPerformed(java.awt.event.ActionEvent evt) {
