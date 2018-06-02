@@ -506,7 +506,8 @@ public class LexicalAnalysis {
                             charCurrIndex--;
                         } else {
                             tableModelToken.addRow(new Object[]{token, tokenCharConstant
-                                    .category, tokenCharConstant.categoryCode});
+                                    .category, tokenCharConstant.categoryCode,codeCurrLineNum
+                                    + 1});
                             jTableTokenInfo.invalidate();
                         }
                         continue;
@@ -685,6 +686,13 @@ public class LexicalAnalysis {
                         continue;
                     }// 6.注释的识别
 
+                    // 7.不合法字符
+                    if ( ch != ' ' && ch != '\t' && ch != '\0' && ch != '\n' && ch != '\r')
+                    {
+                        tableModelError.addRow(new Object[]{codeCurrLineNum + 1,"不合法字符" +
+                                ch});
+                        jTableErrorInfo.invalidate();
+                    }
 
                 } // 对一行程序代码按单个字符切割处理
 
