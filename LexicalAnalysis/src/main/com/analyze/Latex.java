@@ -1,4 +1,4 @@
-package main.java.com.analyze;
+package main.com.analyze;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

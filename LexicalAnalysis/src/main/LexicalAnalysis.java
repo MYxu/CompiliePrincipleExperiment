@@ -1,4 +1,4 @@
-package main.java;
+package main;
 
 
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Map;
 public class LexicalAnalysis {
 
     // Java关键字
-    public static String keywords[] = {
+    private static String keywords[] = {
             "abstract", "assert", "boolean", "break", "byte", "case", "catch",
             "char", "case", "class", "const", "continue", "default", "do",
             "double", "else", "enum", "extends", "final", "finally", "continue",
@@ -28,14 +28,14 @@ public class LexicalAnalysis {
     };
 
     // 运算符
-    public static char operator[] = {'+', '-', '*', '=', '<', '>', '&', '|', '~',
+    private static char operator[] = {'+', '-', '*', '=', '<', '>', '&', '|', '~',
             '^', '!', '(', ')', '[', ']', '{', '}', '%', '/', ';', ',', '#', '.'};
 
     // 界符
-    public static char boundary[] = {',', ';', '[', ']', '(', ')', '.', '{', '}'};
+    private static char boundary[] = {',', ';', '[', ']', '(', ')', '.', '{', '}'};
 
     // 字符串DFA,a代表任意字符，b代表除\和'之外的字符
-    public static String stringDFA[] = {
+    private static String stringDFA[] = {
             "#\\b#",
             "##a#",
             "#\\b\"",
@@ -43,7 +43,7 @@ public class LexicalAnalysis {
     };
 
     // 字符DFA,a代表任意字符，b代表除\和'之外的字符
-    public static String charDFA[] = {
+    private static String charDFA[] = {
             "#\\b#",
             "##a#",
             "###\'",
@@ -51,7 +51,7 @@ public class LexicalAnalysis {
     };
 
     // 实数DFA
-    public static String digitDFA[] = {
+    private static String digitDFA[] = {
             "#d#####",
             "#d.#e##",
             "###d###",
@@ -62,7 +62,7 @@ public class LexicalAnalysis {
     };
 
     // 多行注释DFA
-    public static String noteDFA[] = {
+    private static String noteDFA[] = {
             "#####",
             "##*##",
             "##c*#",
@@ -70,19 +70,19 @@ public class LexicalAnalysis {
             "#####"};
 
     // 存储Token子串的类别以及对应的种别码信息
-    public TokenInfo tokenKeyword;           // Token为关键字
-    public TokenInfo tokenOperator;          // Token为运算符
-    public TokenInfo tokenBoundary;          // Token为界符
-    public TokenInfo tokenIdentifier;        // Token为标识符
-    public TokenInfo tokenAnnotate;          // Token为注释
-    public TokenInfo tokenIntConstant;       // Token为整型常量
-    public TokenInfo tokenFloatConstant;     // Token为浮点型常量
-    public TokenInfo tokenCharConstant;      // Token为字符常量
-    public TokenInfo tokenStringConstant;    // Token为字符串常量
+    private TokenInfo tokenKeyword;           // Token为关键字
+    private TokenInfo tokenOperator;          // Token为运算符
+    private TokenInfo tokenBoundary;          // Token为界符
+    private TokenInfo tokenIdentifier;        // Token为标识符
+    private TokenInfo tokenAnnotate;          // Token为注释
+    private TokenInfo tokenIntConstant;       // Token为整型常量
+    private TokenInfo tokenFloatConstant;     // Token为浮点型常量
+    private TokenInfo tokenCharConstant;      // Token为字符常量
+    private TokenInfo tokenStringConstant;    // Token为字符串常量
 
     // 存储符号表信息
-    public static int symbol_pos; // 记录符号表位置
-    public static Map<String, Integer> symbol = new HashMap<>(); // 符号表HashMap
+    private static int symbol_pos; // 记录符号表位置
+    private static Map<String, Integer> symbol = new HashMap<>(); // 符号表HashMap
 
     // UI界面
     private String codeString;                  // 存储编辑区中输入的代码字符串
@@ -253,9 +253,7 @@ public class LexicalAnalysis {
         if (charCurrIndex + 1 >= charArray.length)
             return false;
         char nextCh = charArray[charCurrIndex + 1];
-        if (ch == '/' && (nextCh == '/' || nextCh == '*'))
-            return true;
-        return false;
+        return ch == '/' && (nextCh == '/' || nextCh == '*');
 
     }
 
@@ -299,8 +297,8 @@ public class LexicalAnalysis {
         }
     }
 
-    public static Boolean inNoteDFA(char ch, char nD, int s) {
-        if (s == 2) {
+    public static Boolean inNoteDFA(char ch, char nD, int status) {
+        if (status == 2) {
             if (nD == 'c') {
                 if (ch != '*')
                     return true;
@@ -308,7 +306,7 @@ public class LexicalAnalysis {
                     return false;
             }
         }
-        if (s == 3) {
+        if (status == 3) {
             if (nD == 'c') {
                 if (ch != '*' && ch != '/')
                     return true;
@@ -350,11 +348,13 @@ public class LexicalAnalysis {
 
 
         // 依次对每行代码进行单词切割、词法分析
-        for (codeCurrLineNum = 0; codeCurrLineNum < codeLines.length; codeCurrLineNum++) {
+        for (codeCurrLineNum = 0; codeCurrLineNum < codeLines.length; codeCurrLineNum++)
+        {
             // 取出一行代码字符串
             String strLine = codeLines[codeCurrLineNum];
 
-            if (!strLine.equals("")) {
+            if (!strLine.equals(""))
+            {
                 // 对当前行的代码字符串进行切割，切割成单个字符存储的字符数组
                 char[] charArray = strLine.toCharArray();
 
@@ -364,7 +364,8 @@ public class LexicalAnalysis {
                     String token = "";  // 用于记录切割出来的Token
 
                     // 1.关键字、标识符的切割识别
-                    if (isAlpha(ch)) {
+                    if (isAlpha(ch))
+                    {
                         do {
                             token += ch;
                             charCurrIndex++;
@@ -387,7 +388,8 @@ public class LexicalAnalysis {
                         // 切割出来的token是标识符
                         if (!isKeyword(token)) {
                             tableModelToken.addRow(new Object[]{token, tokenIdentifier.
-                                    category, tokenIdentifier.categoryCode, codeCurrLineNum + 1});
+                                    category, tokenIdentifier.categoryCode, codeCurrLineNum
+                                    + 1});
                             jTableTokenInfo.invalidate();
 
                             // 如果符号表为空或者符号表不包含当前的token则需要加入符号表中
@@ -408,7 +410,9 @@ public class LexicalAnalysis {
 
                         Boolean isFloat = false;      // 浮点数标志
 
-                        while ((ch != '\0') && (isDigit(ch) || ch == '.' || ch == 'e' || ch == '-')) {
+                        while ((ch != '\0') && (isDigit(ch) || ch == '.' || ch == 'e'
+                                || ch == '-'))
+                        {
                             if (ch == '.' || ch == 'e')
                                 isFloat = true;
 
@@ -575,9 +579,9 @@ public class LexicalAnalysis {
                     // 5.运算符和界符的切割识别
                     // 由于符号'/'有可能是运算符'/'、注释'//'和'/*'
                     // 因此需要进行isAnnotate()判断
-                    if (isOperator(ch) && !isAnnotate(ch, charArray, charCurrIndex)) {
+                    if (isOperator(ch) && !isAnnotate(ch, charArray, charCurrIndex))
+                    {
                         token += ch;
-                        System.out.println(2);
                         // 后面可以组合"="号形成新的运算符,如+=、-=等
                         // 若可以则预读下一个字符
                         // 预读必须满足条件 charCurrIndex + 1 < charArray.length

@@ -4,8 +4,8 @@
  * Created on __DATE__, __TIME__
  */
 
-package main.java.com.ui;
-import main.java.com.analyze.* ;
+package main.com.ui;
+import main.com.analyze.Latex;
 
 import java.awt.*;
 import java.io.*;

@@ -1,6 +1,7 @@
-package main.java;
+package main;
 
-import main.java.com.ui.LineNumberHeaderView;
+import main.com.ui.Frame;
+import main.com.ui.LineNumberHeaderView;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -244,7 +245,7 @@ public class LexicalAnalysisFrame extends javax.swing.JFrame {
     private void jMenuItemOpenFileActionPerformed(java.awt.event.ActionEvent evt) {
         FileDialog fileDialog;
         File codeFile;
-        main.java.com.ui.Frame frame = null;
+        Frame frame = null;
         fileDialog = new FileDialog(frame, "Open", FileDialog.LOAD);
         fileDialog.setVisible(true);
 
