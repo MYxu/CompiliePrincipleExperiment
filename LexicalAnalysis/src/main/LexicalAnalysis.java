@@ -52,13 +52,13 @@ public class LexicalAnalysis {
 
     // 实数DFA
     private static String digitDFA[] = {
-            "#d#####",
-            "#d.#e##",
-            "###d###",
-            "###de##",
-            "#####-d",
-            "######d",
-            "######d"
+            "#d#####",  // status 0
+            "#d.#e##",  // status 1
+            "###d###",  // status 2
+            "###de##",  // status 3
+            "#####-d",  // status 4
+            "######d",  // status 5
+            "######d"   // status 6
     };
 
     // 多行注释DFA
@@ -257,6 +257,14 @@ public class LexicalAnalysis {
 
     }
 
+    /*
+     * @author MYXuu
+     * @description : 字符串识别DFA状态转换判断
+     *
+     * @date 2018/6/11 19:52
+     * @param [ch, key]
+     * @return java.lang.Boolean
+     */
     public static Boolean inStringDFA(char ch, char key) {
         if (key == 'a')
             return true;
